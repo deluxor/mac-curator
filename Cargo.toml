@@ -1,0 +1,50 @@
+[package]
+name = "curator"
+version = "0.1.0"
+edition = "2021"
+description = "High-performance macOS system curator: memory reclaim, DNS flush, cache/temp cleanup, and optimization suggestions."
+authors = ["Joao Duarte <du@rte.pm>"]
+
+[[bin]]
+name = "curator"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", default-features = false, features = ["std", "derive", "help", "usage", "error-context"] }
+anyhow = "1"
+jwalk = "0.9.0"
+rayon = "1"
+sysinfo = { version = "0.39.6", default-features = false, features = ["system"] }
+humansize = "2"
+owo-colors = "4"
+libc = "0.2"
+blake3 = "1"
+
+# Size + fast-startup tuned release profile:
+#  - opt-level "z" minimizes code size for our own crate + most deps.
+#  - lto = "fat" + codegen-units = 1 lets the linker dead-strip unused code
+#    across crate boundaries (biggest single lever for a small static binary).
+#  - panic = "abort" drops all unwinding tables/landing pads (smaller and
+#    means nothing needs to build backtrace/unwind machinery at startup).
+#  - strip = "symbols" removes symbol table + debug info entirely.
+#  - debug = false / debug-assertions = false / overflow-checks = false
+#    ensure zero debug-only codegen or checks leak into the release binary.
+#  - incremental = false: release builds are one-shot; incremental artifacts
+#    would only bloat the target dir, not the binary, but disable it for a
+#    clean, reproducible release build.
+[profile.release]
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
+debug = false
+debug-assertions = false
+overflow-checks = false
+incremental = false
+
+# blake3 is the one hot loop in this binary (duplicate-file hashing) — give
+# it full optimization even though the rest of the binary is size-tuned, so
+# shrinking everything else doesn't cost hashing throughput.
+[profile.release.package.blake3]
+opt-level = 3
