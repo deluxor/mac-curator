@@ -8,7 +8,12 @@ pub fn run() {
     println!("{}", "Optimization suggestions".bold());
     let mut any = false;
 
-    any |= check_large_dir("Homebrew download cache", &brew_cache_dir(), 512 * 1024 * 1024, "brew cleanup");
+    any |= check_large_dir(
+        "Homebrew download cache",
+        &brew_cache_dir(),
+        512 * 1024 * 1024,
+        "brew cleanup",
+    );
     any |= check_large_dir(
         "iOS/iPadOS device backups",
         &home_dir().join("Library/Application Support/MobileSync/Backup"),
@@ -27,7 +32,12 @@ pub fn run() {
         1024 * 1024 * 1024,
         "xcrun simctl delete unavailable",
     );
-    any |= check_large_dir("Trash", &home_dir().join(".Trash"), 512 * 1024 * 1024, "empty Trash");
+    any |= check_large_dir(
+        "Trash",
+        &home_dir().join(".Trash"),
+        512 * 1024 * 1024,
+        "empty Trash",
+    );
     any |= check_docker();
     any |= check_login_items();
     any |= check_time_machine_local_snapshots();
@@ -59,7 +69,12 @@ fn check_large_dir(label: &str, path: &Path, threshold: u64, action: &str) -> bo
     }
     let size = total_size(path);
     if size >= threshold {
-        println!("  [{}] {} — suggested: {}", fmt_size(size).yellow(), label, action);
+        println!(
+            "  [{}] {} — suggested: {}",
+            fmt_size(size).yellow(),
+            label,
+            action
+        );
         true
     } else {
         false
@@ -67,7 +82,11 @@ fn check_large_dir(label: &str, path: &Path, threshold: u64, action: &str) -> bo
 }
 
 fn check_docker() -> bool {
-    let has_docker = Command::new("which").arg("docker").output().map(|o| o.status.success()).unwrap_or(false);
+    let has_docker = Command::new("which")
+        .arg("docker")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false);
     if !has_docker {
         return false;
     }
@@ -80,7 +99,10 @@ fn check_docker() -> bool {
 
 fn check_login_items() -> bool {
     let out = Command::new("osascript")
-        .args(["-e", "tell application \"System Events\" to get the name of every login item"])
+        .args([
+            "-e",
+            "tell application \"System Events\" to get the name of every login item",
+        ])
         .output();
     if let Ok(o) = out {
         if o.status.success() {
@@ -100,10 +122,16 @@ fn check_login_items() -> bool {
 }
 
 fn check_time_machine_local_snapshots() -> bool {
-    let out = Command::new("tmutil").arg("listlocalsnapshots").arg("/").output();
+    let out = Command::new("tmutil")
+        .arg("listlocalsnapshots")
+        .arg("/")
+        .output();
     if let Ok(o) = out {
         if o.status.success() {
-            let n = String::from_utf8_lossy(&o.stdout).lines().filter(|l| l.contains("com.apple.TimeMachine")).count();
+            let n = String::from_utf8_lossy(&o.stdout)
+                .lines()
+                .filter(|l| l.contains("com.apple.TimeMachine"))
+                .count();
             if n > 0 {
                 println!(
                     "  [{}] {} local Time Machine snapshot(s) held on disk — `tmutil thinlocalsnapshots / 999999999999 4` to reclaim",
@@ -158,7 +186,11 @@ fn check_orphaned_app_support() -> bool {
     let installed: Vec<String> = std::fs::read_dir(apps_dir)
         .map(|rd| {
             rd.filter_map(|e| e.ok())
-                .filter_map(|e| e.file_name().to_str().map(|s| s.to_lowercase().replace(".app", "")))
+                .filter_map(|e| {
+                    e.file_name()
+                        .to_str()
+                        .map(|s| s.to_lowercase().replace(".app", ""))
+                })
                 .collect()
         })
         .unwrap_or_default();
@@ -179,7 +211,9 @@ fn check_orphaned_app_support() -> bool {
                     if lower.starts_with("com.apple.") {
                         return None;
                     }
-                    let matches_installed = installed.iter().any(|app| lower.contains(app) || app.contains(&lower));
+                    let matches_installed = installed
+                        .iter()
+                        .any(|app| lower.contains(app) || app.contains(&lower));
                     if matches_installed {
                         return None;
                     }
@@ -220,8 +254,11 @@ fn check_spotlight_indexing() -> bool {
     let out = Command::new("mdutil").args(["-s", "/"]).output();
     if let Ok(o) = out {
         let s = String::from_utf8_lossy(&o.stdout);
-        if s.contains("Indexing enabled") == false && s.contains("disabled") {
-            println!("  [{}] Spotlight indexing is disabled on / — searches will be slow", "note".yellow());
+        if !s.contains("Indexing enabled") && s.contains("disabled") {
+            println!(
+                "  [{}] Spotlight indexing is disabled on / — searches will be slow",
+                "note".yellow()
+            );
             return true;
         }
     }

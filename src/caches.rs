@@ -13,11 +13,7 @@ pub struct CacheTarget {
 /// Subdirectories of ~/Library/Caches that are risky to wipe blindly
 /// (identity/keychain-adjacent or actively-synced state). Everything else
 /// in user caches is safe to drop since apps regenerate it on demand.
-const USER_CACHE_EXCLUDE: &[&str] = &[
-    "com.apple.iconservices.store",
-    "CloudKit",
-    "com.apple.akd",
-];
+const USER_CACHE_EXCLUDE: &[&str] = &["com.apple.iconservices.store", "CloudKit", "com.apple.akd"];
 
 pub fn targets() -> Vec<CacheTarget> {
     let home = home_dir();
@@ -103,7 +99,12 @@ pub fn clean_all(include_root_targets: bool) -> u64 {
         }
         let (files, bytes) = purge_dir_excluding(&t.path, t.exclude);
         if files > 0 {
-            println!("  cleaned {:<40} {:>10} ({} files)", t.name, fmt_size(bytes), files);
+            println!(
+                "  cleaned {:<40} {:>10} ({} files)",
+                t.name,
+                fmt_size(bytes),
+                files
+            );
         }
         freed += bytes;
     }

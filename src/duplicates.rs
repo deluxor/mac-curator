@@ -43,6 +43,7 @@ fn full_hash(path: &Path) -> Option<blake3::Hash> {
 ///   1. bucket by exact file size (free — from metadata, no reads at all)
 ///   2. within each same-size bucket, bucket by a cheap hash of the first 64KB
 ///   3. only fully hash (BLAKE3, SIMD-accelerated) files that still collide
+///
 /// A file with a unique size in the tree is never opened. Size-buckets are
 /// processed in parallel across a rayon thread pool since they're independent.
 pub fn find_duplicates(root: &Path, min_size: u64) -> Vec<DupGroup> {

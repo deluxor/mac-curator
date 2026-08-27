@@ -27,7 +27,12 @@ pub struct Action {
 fn firefox_profiles() -> Vec<PathBuf> {
     let base = home_dir().join("Library/Application Support/Firefox/Profiles");
     std::fs::read_dir(&base)
-        .map(|rd| rd.filter_map(|e| e.ok()).map(|e| e.path()).filter(|p| p.is_dir()).collect())
+        .map(|rd| {
+            rd.filter_map(|e| e.ok())
+                .map(|e| e.path())
+                .filter(|p| p.is_dir())
+                .collect()
+        })
         .unwrap_or_default()
 }
 
@@ -148,7 +153,10 @@ pub fn run_action(a: &Action) -> Result<()> {
         std::fs::remove_file(&a.path)?;
         return Ok(());
     }
-    let status = Command::new("/usr/bin/sqlite3").arg(&a.path).arg(a.sql).status()?;
+    let status = Command::new("/usr/bin/sqlite3")
+        .arg(&a.path)
+        .arg(a.sql)
+        .status()?;
     if !status.success() {
         anyhow::bail!(
             "sqlite3 exited with {status} for {} — likely needs Full Disk Access for Terminal in \
@@ -162,8 +170,18 @@ pub fn run_action(a: &Action) -> Result<()> {
 pub fn print_plan(actions: &[Action]) {
     println!("{}", "Privacy cleanup plan".bold());
     for a in actions {
-        let running = if is_running(a.process_name) { " [RUNNING — close it first]".red().to_string() } else { String::new() };
-        println!("  {:<8} {:<9} {}{}", a.browser, a.category, a.path.display(), running);
+        let running = if is_running(a.process_name) {
+            " [RUNNING — close it first]".red().to_string()
+        } else {
+            String::new()
+        };
+        println!(
+            "  {:<8} {:<9} {}{}",
+            a.browser,
+            a.category,
+            a.path.display(),
+            running
+        );
     }
     println!(
         "{}",

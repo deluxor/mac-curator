@@ -34,7 +34,12 @@ pub fn empty_all() -> u64 {
     for dir in trash_dirs() {
         let (files, bytes) = purge_dir_excluding(&dir, &[]);
         if files > 0 {
-            println!("  emptied {:<32} {:>10} ({} files)", dir.display(), fmt_size(bytes), files);
+            println!(
+                "  emptied {:<32} {:>10} ({} files)",
+                dir.display(),
+                fmt_size(bytes),
+                files
+            );
         }
         freed += bytes;
     }

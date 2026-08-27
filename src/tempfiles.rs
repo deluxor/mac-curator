@@ -55,7 +55,12 @@ pub fn print_scan_report() {
     println!("{}", "Temp/log scan".bold());
     for t in targets() {
         let tag = if t.needs_root { " [root]" } else { "" };
-        println!("  {:<32} {:>10}{}", t.name, fmt_size(total_size(&t.path)), tag);
+        println!(
+            "  {:<32} {:>10}{}",
+            t.name,
+            fmt_size(total_size(&t.path)),
+            tag
+        );
     }
 }
 
@@ -67,7 +72,12 @@ pub fn clean_all(include_root_targets: bool) -> u64 {
         }
         let (files, bytes) = purge_old_files(&t.path, t.min_age_days, None);
         if files > 0 {
-            println!("  cleaned {:<32} {:>10} ({} files)", t.name, fmt_size(bytes), files);
+            println!(
+                "  cleaned {:<32} {:>10} ({} files)",
+                t.name,
+                fmt_size(bytes),
+                files
+            );
         }
         freed += bytes;
     }

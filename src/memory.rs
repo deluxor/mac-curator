@@ -32,7 +32,11 @@ pub fn print_snapshot(label: &str, s: &MemSnapshot) {
         fmt_size(s.available)
     );
     if s.swap_total > 0 {
-        println!("  Swap  {} used / {} total", fmt_size(s.swap_used), fmt_size(s.swap_total));
+        println!(
+            "  Swap  {} used / {} total",
+            fmt_size(s.swap_used),
+            fmt_size(s.swap_total)
+        );
     }
 }
 

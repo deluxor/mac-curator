@@ -8,7 +8,10 @@ use std::process::Command;
 /// Gatekeeper/SIP state, non-Apple persistence entries, and crude red flags
 /// in their launch commands. Nothing is ever modified, quarantined, or deleted.
 pub fn run() {
-    println!("{}", "SIP/Gatekeeper/persistence check (heuristic — not a virus scanner)".bold());
+    println!(
+        "{}",
+        "SIP/Gatekeeper/persistence check (heuristic — not a virus scanner)".bold()
+    );
 
     check_gatekeeper();
     check_sip();
@@ -27,7 +30,11 @@ pub fn run() {
 fn check_gatekeeper() {
     if let Ok(out) = Command::new("spctl").arg("--status").output() {
         let s = String::from_utf8_lossy(&out.stdout);
-        let status = if s.contains("enabled") { "enabled".to_string().green().to_string() } else { "DISABLED".to_string().red().to_string() };
+        let status = if s.contains("enabled") {
+            "enabled".to_string().green().to_string()
+        } else {
+            "DISABLED".to_string().red().to_string()
+        };
         println!("  Gatekeeper: {}", status);
     }
 }
@@ -35,12 +42,24 @@ fn check_gatekeeper() {
 fn check_sip() {
     if let Ok(out) = Command::new("csrutil").arg("status").output() {
         let s = String::from_utf8_lossy(&out.stdout);
-        let status = if s.contains("enabled") { "enabled".to_string().green().to_string() } else { "DISABLED".to_string().red().to_string() };
+        let status = if s.contains("enabled") {
+            "enabled".to_string().green().to_string()
+        } else {
+            "DISABLED".to_string().red().to_string()
+        };
         println!("  System Integrity Protection: {}", status);
     }
 }
 
-const SUSPICIOUS_SNIPPETS: &[&str] = &["curl", "wget", "base64 -d", "/tmp/", "/private/tmp/", "osascript -e", "nc -"];
+const SUSPICIOUS_SNIPPETS: &[&str] = &[
+    "curl",
+    "wget",
+    "base64 -d",
+    "/tmp/",
+    "/private/tmp/",
+    "osascript -e",
+    "nc -",
+];
 
 fn check_persistence_dir(dir: &Path) {
     let entries = match std::fs::read_dir(dir) {
@@ -49,14 +68,24 @@ fn check_persistence_dir(dir: &Path) {
     };
     for e in entries.filter_map(|e| e.ok()) {
         let path = e.path();
-        let Some(name) = path.file_name().and_then(|n| n.to_str()) else { continue };
+        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+            continue;
+        };
         if name.starts_with("com.apple.") {
             continue;
         }
         let content = std::fs::read_to_string(&path).unwrap_or_default();
-        let hits: Vec<&str> = SUSPICIOUS_SNIPPETS.iter().filter(|s| content.contains(**s)).copied().collect();
+        let hits: Vec<&str> = SUSPICIOUS_SNIPPETS
+            .iter()
+            .filter(|s| content.contains(**s))
+            .copied()
+            .collect();
         if hits.is_empty() {
-            println!("  [{}] non-Apple persistence entry: {}", "note".yellow(), path.display());
+            println!(
+                "  [{}] non-Apple persistence entry: {}",
+                "note".yellow(),
+                path.display()
+            );
         } else {
             println!(
                 "  [{}] non-Apple persistence entry with suspicious pattern(s) {:?}: {}",
@@ -72,9 +101,16 @@ fn check_crontab() {
     if let Ok(out) = Command::new("crontab").arg("-l").output() {
         if out.status.success() {
             let s = String::from_utf8_lossy(&out.stdout);
-            let lines: Vec<&str> = s.lines().filter(|l| !l.trim().is_empty() && !l.trim_start().starts_with('#')).collect();
+            let lines: Vec<&str> = s
+                .lines()
+                .filter(|l| !l.trim().is_empty() && !l.trim_start().starts_with('#'))
+                .collect();
             if !lines.is_empty() {
-                println!("  [{}] {} active user crontab entr(ies) — review with `crontab -l`", "note".yellow(), lines.len());
+                println!(
+                    "  [{}] {} active user crontab entr(ies) — review with `crontab -l`",
+                    "note".yellow(),
+                    lines.len()
+                );
             }
         }
     }

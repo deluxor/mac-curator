@@ -2,9 +2,9 @@ mod caches;
 mod disk;
 mod dns;
 mod duplicates;
-mod sip;
 mod memory;
 mod privacy;
+mod sip;
 mod suggest;
 mod tempfiles;
 mod trash;
@@ -133,17 +133,32 @@ fn main() -> Result<()> {
         Commands::Memory => cmd_memory(),
         Commands::Dns => cmd_dns(),
         Commands::Trash { dry_run, yes } => cmd_trash(dry_run, yes),
-        Commands::Clean { dry_run, yes, system, keep_trash } => cmd_clean(dry_run, yes, system, keep_trash),
+        Commands::Clean {
+            dry_run,
+            yes,
+            system,
+            keep_trash,
+        } => cmd_clean(dry_run, yes, system, keep_trash),
         Commands::Suggest => {
             suggest::run();
             Ok(())
         }
-        Commands::Duplicates { path, min_size, delete, dry_run, yes } => {
-            cmd_duplicates(path, min_size, delete, dry_run, yes)
-        }
-        Commands::Privacy { browser, history, cookies, autofill, force, dry_run, yes } => {
-            cmd_privacy(browser, history, cookies, autofill, force, dry_run, yes)
-        }
+        Commands::Duplicates {
+            path,
+            min_size,
+            delete,
+            dry_run,
+            yes,
+        } => cmd_duplicates(path, min_size, delete, dry_run, yes),
+        Commands::Privacy {
+            browser,
+            history,
+            cookies,
+            autofill,
+            force,
+            dry_run,
+            yes,
+        } => cmd_privacy(browser, history, cookies, autofill, force, dry_run, yes),
         Commands::SipCheck => {
             sip::run();
             Ok(())
@@ -179,7 +194,11 @@ fn cmd_trash(dry_run: bool, yes: bool) -> Result<()> {
         }
     }
     let freed = trash::empty_all();
-    println!("{} {}", "Trash emptied, freed:".bold(), fmt_size(freed).green());
+    println!(
+        "{} {}",
+        "Trash emptied, freed:".bold(),
+        fmt_size(freed).green()
+    );
     Ok(())
 }
 
@@ -285,11 +304,20 @@ fn cmd_all(yes: bool, dry_run: bool) -> Result<()> {
     Ok(())
 }
 
-fn cmd_duplicates(path: PathBuf, min_size: u64, delete: bool, dry_run: bool, yes: bool) -> Result<()> {
+fn cmd_duplicates(
+    path: PathBuf,
+    min_size: u64,
+    delete: bool,
+    dry_run: bool,
+    yes: bool,
+) -> Result<()> {
     if !path.is_dir() {
         anyhow::bail!("{} is not a directory", path.display());
     }
-    println!("{}", format!("Scanning {} for duplicates...", path.display()).bold());
+    println!(
+        "{}",
+        format!("Scanning {} for duplicates...", path.display()).bold()
+    );
     let mut groups = duplicates::find_duplicates(&path, min_size);
     if groups.is_empty() {
         println!("No duplicates found.");
@@ -300,15 +328,27 @@ fn cmd_duplicates(path: PathBuf, min_size: u64, delete: bool, dry_run: bool, yes
     let mut total_waste = 0u64;
     for g in &groups {
         total_waste += g.wasted();
-        println!("  {} copies x {} (waste {})", g.paths.len(), fmt_size(g.size), fmt_size(g.wasted()).yellow());
+        println!(
+            "  {} copies x {} (waste {})",
+            g.paths.len(),
+            fmt_size(g.size),
+            fmt_size(g.wasted()).yellow()
+        );
         for p in &g.paths {
             println!("    {}", p.display());
         }
     }
-    println!("{} {}", "Total reclaimable:".bold(), fmt_size(total_waste).green());
+    println!(
+        "{} {}",
+        "Total reclaimable:".bold(),
+        fmt_size(total_waste).green()
+    );
 
     if !delete {
-        println!("{}", "Run with --delete to remove all but the oldest copy in each group.".dimmed());
+        println!(
+            "{}",
+            "Run with --delete to remove all but the oldest copy in each group.".dimmed()
+        );
         return Ok(());
     }
     if dry_run {
@@ -316,7 +356,10 @@ fn cmd_duplicates(path: PathBuf, min_size: u64, delete: bool, dry_run: bool, yes
         return Ok(());
     }
     if !yes {
-        let proceed = util::confirm(&format!("Delete duplicates and reclaim {}?", fmt_size(total_waste)), false)?;
+        let proceed = util::confirm(
+            &format!("Delete duplicates and reclaim {}?", fmt_size(total_waste)),
+            false,
+        )?;
         if !proceed {
             println!("Aborted.");
             return Ok(());
@@ -405,7 +448,8 @@ fn cmd_disk(action: DiskAction) -> Result<()> {
         }
         DiskAction::Repair { volume, yes } => {
             if !yes {
-                let proceed = util::confirm(&format!("Run diskutil repairVolume on {volume}?"), false)?;
+                let proceed =
+                    util::confirm(&format!("Run diskutil repairVolume on {volume}?"), false)?;
                 if !proceed {
                     println!("Aborted.");
                     return Ok(());

@@ -107,7 +107,7 @@ pub fn purge_old_files(root: &Path, min_age_days: u64, ext_filter: Option<&[&str
     if !root.exists() {
         return (0, 0);
     }
-    let cutoff = min_age_days as u64 * 24 * 3600;
+    let cutoff = min_age_days * 24 * 3600;
     let now = SystemTime::now();
 
     let files = scan_files(root);
