@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 description = "High-performance macOS system curator: memory reclaim, DNS flush, cache/temp cleanup, and optimization suggestions."
 authors = ["Joao Duarte <du@rte.pm>"]
+license = "Apache-2.0"
+repository = "https://github.com/deluxor/mac-curator"
+homepage = "https://github.com/deluxor/mac-curator"
 
 [[bin]]
 name = "curator"
