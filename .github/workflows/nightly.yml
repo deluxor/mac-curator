@@ -1,0 +1,73 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: github.repository == 'deluxor/mac-curator'
+    strategy:
+      matrix:
+        target: [aarch64-apple-darwin, x86_64-apple-darwin]
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: nightly-${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --release --locked --target ${{ matrix.target }}
+
+      - name: Package
+        run: |
+          set -euo pipefail
+          bin=target/${{ matrix.target }}/release/curator
+          archive="curator-${{ matrix.target }}.tar.gz"
+          tar -czf "$archive" -C "$(dirname "$bin")" "$(basename "$bin")"
+          shasum -a 256 "$archive" > "$archive.sha256"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nightly-${{ matrix.target }}
+          path: |
+            curator-${{ matrix.target }}.tar.gz
+            curator-${{ matrix.target }}.tar.gz.sha256
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    if: github.repository == 'deluxor/mac-curator'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Compute build date
+        id: date
+        run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish rolling nightly pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          name: "Nightly build ${{ steps.date.outputs.date }}"
+          prerelease: true
+          make_latest: false
+          body: |
+            Automated nightly build from `main` @ ${{ github.sha }}.
+            Not a stable release — use a tagged `v*` release for anything important.
+          files: dist/*
+          fail_on_unmatched_files: true

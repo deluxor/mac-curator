@@ -1,4 +1,15 @@
-# curator
+<p align="center">
+  <img src="assets/logo.png" alt="curator logo" width="160">
+</p>
+
+<h1 align="center">curator</h1>
+
+<p align="center">
+  <a href="https://github.com/deluxor/mac-curator/actions/workflows/ci.yml"><img src="https://github.com/deluxor/mac-curator/actions/workflows/ci.yml/badge.svg" alt="Build Status"></a>
+  <a href="https://github.com/deluxor/mac-curator/actions/workflows/nightly.yml"><img src="https://github.com/deluxor/mac-curator/actions/workflows/nightly.yml/badge.svg" alt="Nightlies"></a>
+  <a href="https://github.com/deluxor/mac-curator/actions/workflows/links.yml"><img src="https://github.com/deluxor/mac-curator/actions/workflows/links.yml/badge.svg" alt="Check Links"></a>
+  <a href="https://securityscorecards.dev/viewer/?uri=github.com/deluxor/mac-curator"><img src="https://api.securityscorecards.dev/projects/github.com/deluxor/mac-curator/badge" alt="OpenSSF Scorecard"></a>
+</p>
 
 A fast, no-nonsense macOS system curator: reclaim RAM, flush DNS, clean
 caches/temp files, find duplicates, and surface non-destructive optimization
